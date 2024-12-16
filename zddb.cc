@@ -136,7 +136,8 @@ struct Zdd {
     return memory->get(lo, hi, label);
   }
 
-  void check() const {
+  // Verify that this is a correctly constructed ZDD.
+  void verify() const {
     assert(memory);
     for (auto n : memory->nodes) {
       (void)n;
@@ -182,11 +183,11 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
   // This is a performance improvement only, multiunion works correctly if you
   // simply remove this code block.
   if (worklist.size() == 1 && !include_hi) {
-    std::unordered_map<IdxTy, IdxTy> cache{{lo_idx, lo_idx}, {hi_idx, hi_idx}};
     auto root = worklist[0].root;
     if (root < 0)
       return root;
     auto memory = worklist[0].memory;
+    std::unordered_map<IdxTy, IdxTy> cache{{lo_idx, lo_idx}, {hi_idx, hi_idx}};
     std::vector<IdxTy> copy_worklist(1, root);
     do {
       auto n_idx = copy_worklist.back();
@@ -281,11 +282,11 @@ int main(int argc, char **argv) {
       for (std::string line; std::getline(ifs, line);) {
         lines.emplace_back(&flat1);
         lines.back().root = line_to_zdd(lines.back(), line);
-        assert((lines.back().check(), true));
+        assert((lines.back().verify(), true));
       }
     }
 
     all_lines.root = multiunion(flat2, lines);
-    assert((all_lines.check(), true));
+    assert((all_lines.verify(), true));
   }
 }
