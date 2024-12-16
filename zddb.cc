@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -5,6 +6,9 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+
+// We need to define std::hash for our std::tuple in order to put them in
+// a std::unordered_map.
 
 // begin cut-and-paste from stackoverflow
 // function has to live in the std namespace
@@ -62,6 +66,9 @@ static constexpr LabelTy LO = -1;
 static constexpr LabelTy HI = -2;
 
 struct ZddNode {
+  explicit ZddNode(IdxTy lo, IdxTy hi, LabelTy label)
+    : lo(lo), hi(hi), label(label) {}
+
   IdxTy lo = -3;
   IdxTy hi = -3;
   LabelTy label = -3;
@@ -99,12 +106,12 @@ struct ZddNodes {
 };
 
 struct Zdd {
-  Zdd() {}
-  explicit Zdd(ZddNodes *memory) : memory(memory) {}
+  explicit Zdd() {}
+  explicit Zdd(ZddNodes *memory) : memory(memory), root(lo_idx) {}
   explicit Zdd(ZddNodes *memory, IdxTy root) : memory(memory), root(root) {}
 
   ZddNodes *memory = nullptr;
-  IdxTy root = lo_idx;
+  IdxTy root = -3;
 
   LabelTy get_label(IdxTy idx) const {
     assert(memory);
@@ -121,10 +128,12 @@ struct Zdd {
     return memory->get(lo, hi, label);
   }
 
-  void check() {
+  void check() const {
     assert(memory);
     for (auto n : memory->nodes) {
-      assert(n.lo == lo_idx || n.lo == hi_idx || n.label < (*memory)[n.lo].label);
+      (void)n;
+      assert(n.lo == lo_idx || n.lo == hi_idx ||
+             n.label < (*memory)[n.lo].label);
       assert(n.hi == hi_idx || n.label < (*memory)[n.hi].label);
     }
   }
@@ -148,8 +157,8 @@ IdxTy multiunion(Zdd &ret, const std::vector<Zdd> &in) {
 
 IdxTy multiunion(Zdd &ret, std::vector<Zdd> worklist, bool include_hi) {
 #ifndef NDEBUG
-  for (auto [_idx, root] : worklist)
-    assert(root >= 0);
+  for (auto &z : worklist)
+    assert(z.root >= 0);
 #endif
 
   if (worklist.empty())
@@ -210,7 +219,8 @@ IdxTy line_to_zdd(Zdd &ret, std::string line) {
   }
   return hi;
 }
-}
+
+}  // end anonymous namespace
 
 int main(int argc, char **argv) {
   ZddNodes flat2;
