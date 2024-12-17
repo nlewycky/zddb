@@ -253,8 +253,8 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
     } while (1);
   }
 
-  // Find the next lowest label. In a ZDD every node points to nodes with a
-  // greater, or to one of the terminal nodes.
+  // Find the next lowest label. Every node points to nodes with a greater
+  // label or one of the terminal nodes.
   LabelTy next_label;
   {
     auto next_it =
