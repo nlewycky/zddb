@@ -319,9 +319,9 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
 IdxTy line_to_zdd(Zdd &ret, std::string line) {
   assert(line.size() < 8388608);  // assumes 32-bit 'LabelTy'
   IdxTy hi = hi_idx;
-  int count = line.size() - 1;
+  int column = line.size() - 1;
   for (auto i = line.rbegin(), e = line.rend(); i != e; ++i)
-    hi = ret.get(lo_idx, hi, *i + (256 * count--));
+    hi = ret.get(lo_idx, hi, *i + (256 * column--));
   return hi;
 }
 
