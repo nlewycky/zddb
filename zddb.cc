@@ -207,8 +207,8 @@ IdxTy multiunion(ZddNodes &ret, const std::vector<Zdd> &in) {
   return multiunion(ret, worklist, include_hi);
 }
 
-// Internal API for multiunion. Worklist must not include any lo_idx or hi_idx
-// ZDDs. If you want to union with hi_idx, set include_hi instead.
+// Internal API. Worklist must not include any lo_idx or hi_idx ZDDs.
+// To union with hi_idx, set include_hi instead.
 IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
 #ifndef NDEBUG
   for (auto &z : worklist)
