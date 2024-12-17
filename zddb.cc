@@ -262,8 +262,8 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
                        [&](const Zdd &lhs, const Zdd &rhs) {
         // There are no C++ objects for the terminal nodes, detect their special
         // labels so we don't try to do lookups of them. Terminal labels sort
-        // last since any other node with a label must occur first, on the path
-        // to the labels on the terminal nodes.
+        // last since any other node with a label must occur first along the
+        // path to the terminal nodes.
         bool lhs_is_terminal = lhs.root < 0;
         bool rhs_is_terminal = rhs.root < 0;
         if (!lhs_is_terminal && !rhs_is_terminal)
