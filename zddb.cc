@@ -192,7 +192,6 @@ struct Zdd {
 IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi);
 
 // Unions any number of ZDDs. Commonly used to construct ZDDs by unioning sets.
-// Adds the nodes
 IdxTy multiunion(ZddNodes &ret, const std::vector<Zdd> &in) {
   std::vector<Zdd> worklist;
   bool include_hi = false;
