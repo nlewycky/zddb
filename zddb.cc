@@ -314,6 +314,8 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
                  next_label);
 }
 
+// Produce a ZDD with a single set in it representing the bytes in line, each
+// byte represented with one label in range of [0 .. 255] + (column * 256).
 IdxTy line_to_zdd(Zdd &ret, std::string line) {
   assert(line.size() < 8388608);  // assumes 32-bit 'LabelTy'
   IdxTy hi = hi_idx;
