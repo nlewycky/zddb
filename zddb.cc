@@ -146,6 +146,47 @@ struct Zdd {
       assert(n.hi == hi_idx || n.label < (*memory)[n.hi].label);
     }
   }
+
+  // Enumerates every set in the ZDD and calls your callback for them, stops
+  // when your callback returns true.
+  template<typename CB>
+  void enumerate_sets(CB cb) {
+    if (root == lo_idx)
+      return;
+
+    std::vector<std::pair<IdxTy, std::vector<LabelTy>>> stack;
+    stack.emplace_back(root, std::vector<LabelTy>{});
+    do {
+      auto &[nidx, variables] = stack.back();
+      assert(nidx != lo_idx);
+      if (nidx == hi_idx) {
+        if constexpr (std::is_void_v<decltype(cb(variables))>)
+          cb(variables);
+        else if (cb(variables))
+          return;
+        stack.pop_back();
+        continue;
+      }
+      const auto &n = (*this)[nidx];
+      if (n.lo == lo_idx) {
+        // Reuse existing `stack` entry to follow 'hi' edge. Update index, add
+        // current node to the list of variables.
+        nidx = n.hi;
+        variables.emplace_back(n.label);
+        continue;
+      }
+
+      // Existing entry in `stack` follows 'lo' edge. Update index but the
+      // variables stay the same.
+      nidx = n.lo;
+
+      // Follow 'hi' edge and add it to `stack`. Add current node label to
+      // the variables.
+      auto variables_copy = variables;
+      variables_copy.emplace_back(n.label);
+      stack.emplace_back(n.hi, variables_copy);
+    } while (!stack.empty());
+  }
 };
 
 IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi);
@@ -258,47 +299,6 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
                  next_label);
 }
 
-// Enumerates every set in the ZDD and calls your callback for them, stops when
-// your callback returns true.
-template<typename CB>
-void enumerate_sets(Zdd zdd, CB cb) {
-  if (zdd.root == lo_idx)
-    return;
-
-  std::vector<std::pair<IdxTy, std::vector<LabelTy>>> stack;
-  stack.emplace_back(zdd.root, std::vector<LabelTy>{});
-  do {
-    auto &[nidx, variables] = stack.back();
-    assert(nidx != lo_idx);
-    if (nidx == hi_idx) {
-      if constexpr (std::is_void_v<decltype(cb(variables))>)
-        cb(variables);
-      else if (cb(variables))
-        return;
-      stack.pop_back();
-      continue;
-    }
-    const auto &n = zdd[nidx];
-    if (n.lo == lo_idx) {
-      // Reuse existing `stack` entry to follow 'hi' edge. Update index, add
-      // current node to the list of variables.
-      nidx = n.hi;
-      variables.emplace_back(n.label);
-      continue;
-    }
-
-    // Existing entry in `stack` follows 'lo' edge. Update index but the
-    // variables stay the same.
-    nidx = n.lo;
-
-    // Follow 'hi' edge and add it to `stack`. Add current node label to
-    // the variables.
-    auto variables_copy = variables;
-    variables_copy.emplace_back(n.label);
-    stack.emplace_back(n.hi, variables_copy);
-  } while (!stack.empty());
-}
-
 IdxTy line_to_zdd(Zdd &ret, std::string line) {
   assert(line.size() < 8388608);  // assumes 32-bit 'LabelTy'
   IdxTy hi = hi_idx;
@@ -331,7 +331,7 @@ int main(int argc, char **argv) {
     assert((all_lines.verify(), true));
   }
 
-  enumerate_sets(all_lines, [&](auto variables) {
+  all_lines.enumerate_sets([&](auto variables) {
     for (auto v : variables)
       std::print("{}", (char)(v%256));
     std::println("");
