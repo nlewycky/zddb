@@ -254,24 +254,39 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
     } while (1);
   }
 
+  // Find the next lowest label. In a ZDD every node points to nodes with a
+  // greater, or to one of the terminal nodes.
   LabelTy next_label;
   {
     auto next_it =
       std::min_element(worklist.begin(), worklist.end(),
                        [&](const Zdd &lhs, const Zdd &rhs) {
-        bool l_term = lhs.root < 0;
-        bool r_term = rhs.root < 0;
-        if (!l_term && !r_term)
+        // There are no C++ objects for the terminal nodes, detect their special
+        // labels so we don't try to do lookups of them. Terminal labels sort
+        // last since any other node with a label must occur first, on the path
+        // to the labels on the terminal nodes.
+        bool lhs_is_terminal = lhs.root < 0;
+        bool rhs_is_terminal = rhs.root < 0;
+        if (!lhs_is_terminal && !rhs_is_terminal)
           return lhs.get_label(lhs.root) < rhs.get_label(rhs.root);
-        if (l_term && r_term)
+        if (lhs_is_terminal && rhs_is_terminal)
           return lhs.root < rhs.root;
-        return r_term;
+        return rhs_is_terminal;
     });
     next_label = next_it->get_label(next_it->root);
   }
 
+  // The worklist never contains 'LO' nodes, any union with LO is equal to the
+  // same without it (like adding zero or multiplying by one). The worklist
+  // never contains 'HI' nodes, we use `include_hi` instead.
   assert(next_label != LO && next_label != HI);
 
+  // Partition the remaining nodes into lo-side and hi-side:
+  //  * for nodes with label == next_label, expand them:
+  //    + add their lo to next_lo and hi to next_hi
+  //      - except don't add lo_idx
+  //      - also don't add hi_idx by setting include_hi instead
+  //  * otherwise, add the node to next_lo for processing on a later step.
   std::vector<Zdd> next_lo, next_hi;
   bool include_hi_lo = include_hi, include_hi_hi = false;
   for (const auto &z : worklist) {
@@ -333,7 +348,7 @@ int main(int argc, char **argv) {
 
   all_lines.enumerate_sets([&](auto variables) {
     for (auto v : variables)
-      std::print("{}", (char)(v%256));
+      std::print("{}", (char)(v % 256));
     std::println("");
   });
 }
