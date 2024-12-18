@@ -275,9 +275,9 @@ IdxTy multiunion(ZddNodes &ret, std::vector<Zdd> worklist, bool include_hi) {
     next_label = next_it->get_label(next_it->root);
   }
 
-  // The worklist never contains 'LO' nodes, any union with LO is equal to the
-  // same without it (like adding zero or multiplying by one). The worklist
-  // never contains 'HI' nodes, we use `include_hi` instead.
+  // The worklist never contains 'LO' nodes because unioning with 'LO' is
+  // the identity operation. The worklist never contains 'HI' nodes, we store
+  // those by setting `include_hi` to true instead.
   assert(next_label != LO && next_label != HI);
 
   // Partition the remaining nodes into lo-side and hi-side:
