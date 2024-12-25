@@ -1,6 +1,6 @@
 # zddb
 
-zddb is a commandline tool reprints a text file, lines sorted and uniqued. It
+zddb is a command line tool reprints a text file, lines sorted and uniqued. It
 is the same as `sort -u`. Internally it builds up a ZDD per line of text, unions
 them, and then enumerates every set stored in the ZDD, printing them. The
 purpose is to serve as example code to show fast unioning of many ZDDs. The
@@ -36,7 +36,7 @@ This ZDD represents a family of two sets
 graphically:
 
 ![Visualization of ZDD](https://g.gravizo.com/source/custom_markexample1?https%3A%2F%2Fraw.githubusercontent.com%2Fnlewycky%2Fzddb%2Fmaster%2FREADME.md)
-<details> 
+<details>
 <summary></summary>
 custom_markexample1
 digraph example1 {
